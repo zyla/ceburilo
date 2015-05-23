@@ -39,6 +39,9 @@ executable ceburilo
                         , vector
                         , containers
                         , text
+                        , warp
+                        , wai
+                        , wai-cors
 
     ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
     -- hs-source-dirs:
