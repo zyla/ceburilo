@@ -1,10 +1,11 @@
 -- | Common type definitions for routes.
-{-# LANGUAGE ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings, TemplateHaskell #-}
 module Types where
 
 import Control.Applicative
 import Data.Aeson
 import qualified Data.Vector as V
+import qualified Data.Map as M
 
 import Data.Aeson.TH
 import Utils
@@ -73,11 +74,33 @@ instance FromJSON Instruction where
         Instruction <$> obj .: "text"
                     <*> obj .: "interval"
 
+type StationNumber = String
+
 data Station = Station
-    { stationNumber :: Int
+    { stationNumber :: StationNumber
     , stationName :: String
     , stationLocation :: Point
     } deriving (Show)
 
 instance Eq Station where
     (Station n1 _ _) == (Station n2 _ _) = n1 == n2
+
+-- Station location together with paths to other stations
+data StationPaths = StationPaths
+    { spStation :: Station
+    , spPaths :: M.Map StationNumber Path
+    -- ^ Mapping from station number to path to the station
+    }
+
+instance FromJSON StationPaths where
+    parseJSON = withObject "StationPaths" $ \obj ->
+        StationPaths <$> (Station <$> obj .: "number" <*> obj .: "name" <*> obj .: "location")
+                     <*> obj .: "paths"
+
+instance ToJSON StationPaths where
+    toJSON StationPaths{..} = object
+        [ "number" .= stationNumber spStation
+        , "name" .= stationName spStation
+        , "location" .= stationLocation spStation
+        , "paths" .= spPaths
+        ]

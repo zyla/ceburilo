@@ -37,6 +37,7 @@ executable ceburilo
                         , http-types
                         , aeson
                         , vector
+                        , containers
 
     ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
     -- hs-source-dirs:

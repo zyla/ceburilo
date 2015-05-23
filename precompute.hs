@@ -3,6 +3,7 @@ module Main where
 
 import Control.Applicative
 import Control.Monad
+import Control.Arrow
 
 import Data.Default
 import Data.String
@@ -57,6 +58,9 @@ getRoute start end manager = do
     body <- responseBody <$> httpLbs req manager
     return $ fmap routePath $ Aeson.eitherDecode body
 
+-- Maximum allowed time (20 minutes), in milliseconds.
+maxTime = 20 * 60 * 1000
+
 getStations :: Document -> [Station]
 getStations = mapMaybe getStation . elementNodes . documentRoot
   where
@@ -73,10 +77,26 @@ readMay s = case reads s of
     [(x, "")] -> Just x
     _ -> Nothing
 
-concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 8
+-- Split the list into chunks and apply given action in parallel for each chunk.
+concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 4
+
+getStationRoutes :: [Station] -> Station -> Manager -> IO (M.Map StationNumber Path)
+getStationRoutes stations beginStation manager =
+    let goodPath = (<= maxTime) . pathTime
+        routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
+            Right route -> return $ Just (dest, route)
+            Left _ -> return Nothing
+
+    in fmap (M.fromList . fmap (first stationNumber) . filter (goodPath . snd) . catMaybes) $
+        concurrently routeToStation $
+        filter (/= beginStation) $
+        stations
+
+processStations :: [Station] -> Manager -> IO [StationPaths]
+processStations stations manager = mapM getStationPaths' stations
+  where
+    getStationPaths' station = StationPaths station <$> getStationRoutes stations station manager
 
 main = withManager defaultManagerSettings $ \manager -> do
     stations <- getStations <$> XML.readFile def "nextbike-live.xml"
-    let pairs = filter (uncurry (/=)) $ (,) <$> stations <*> stations
-    (>>= mapM_ (B8.putStrLn . Aeson.encode)) $ flip concurrently pairs $ \(start, end) ->
-        getRoute (stationLocation start) (stationLocation end) manager
+    processStations stations manager >>= B8.putStr . Aeson.encode
