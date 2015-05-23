@@ -26,6 +26,9 @@ instance FromJSON Point where
 instance ToJSON Point where
     toJSON (Point lat lon) = toJSON (lat, lon)
 
+distanceSq :: Point -> Point -> Float
+distanceSq (Point x1 y1) (Point x2 y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
+
 data Path = Path
     { pathDistance :: Float
     , pathTime :: Float

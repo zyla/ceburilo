@@ -7,12 +7,18 @@ import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors
 import Yesod.Core
 import Graph
+import Types
+import qualified Data.Map as M
 
 loadApp :: IO App
 loadApp = do
-    graph <- fromMaybe (error "error loading graph") <$>
-        readGraphFromFile "paths.json"
-    return $ App graph
+    paths <- fromMaybe (error "error loading graph") <$>
+        parseJSONFromFile "paths.json"
+    let graph = buildGraph paths
+    return $ App graph (stationsToMap paths)
+
+stationsToMap = M.fromList . map spToPair
+  where spToPair sp@(StationPaths (Station number _ _) _) = (number, sp)
 
 main :: IO ()
 main = do

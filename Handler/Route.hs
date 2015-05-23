@@ -9,9 +9,13 @@ import Utils
 import Data.Aeson.TH
 import Data.Text
 import Data.Maybe
+import Data.List
+import Data.Ord
 import Control.Monad
 import Control.Applicative
+import Data.Monoid
 import qualified Data.Vector as V
+import qualified Data.Map as M
 import Graph
 
 data RouteView = RouteView
@@ -25,26 +29,39 @@ deriveToJSON jsonOptions ''RouteView
 
 getRouteR :: Handler Value
 getRouteR = do
-    begName <- lookupGetParam "begining"
-    destName <- lookupGetParam "destination"
-
-    begLat <- requireGetParam "beg_lat"
-    destLat <- requireGetParam "dest_lat"
-    begLng <- requireGetParam "beg_lng"
-    destLng <- requireGetParam "dest_lng"
+    begName <- fromMaybe "" <$> lookupGetParam "begining"
+    destName <- fromMaybe "" <$> lookupGetParam "destination"
 
     graph <- appGraph <$> getYesod
+    stationPaths <- appStationPaths <$> getYesod
 
-    return $ toJSON $ RouteView path stations (fromMaybe "" begName) (fromMaybe "" destName)
-    where path = Path 30 234000 $ Just $ V.fromList
-                    [    Point 52.235707713687624 20.996793508529663
-                    ,    Point 52.24884675795982 21.005457043647766
-                    ,    Point 52.230217725853215 21.01259171962738
-                    ,    Point 52.2314251871654 21.0213263332844
-                    ,    Point 52.23935090349061 21.01681351661682
-                    ]
-          stations = [
-                         Station 123 "Stacja1" (Point 52.235707713687624 20.996793508529663)
-                    ,    Station 234 "Stacja2" (Point 52.24884675795982 21.00545704364776)
-                    ,    Station 345 "Stacja2" (Point 52.230217725853215 21.01259171962738)
-                    ]
+    let lookupStation = fmap spStation . flip M.lookup stationPaths
+        allStations = fmap spStation $ M.elems stationPaths
+        nearestStation point = stationNumber $
+            minimumBy (comparing $ distanceSq point . stationLocation) $
+            allStations
+
+    beginStation <- nearestStation <$> requirePoint "beg_lat" "beg_lon"
+    destStation <- nearestStation <$> requirePoint "dest_lat" "dest_lon"
+
+    case generateRoute graph beginStation destStation of
+      Just stationNumbers ->
+        let stations = mapMaybe lookupStation (beginStation:stationNumbers)
+            path = Path 0 0 Nothing -- FIXME
+        in return $ toJSON $
+            RouteView path stations begName destName
+      
+      Nothing -> sendResponseStatus status404 ("GÓWNO" :: Text)
+
+requirePoint :: Text -- ^ latitude field
+             -> Text -- ^ longitude field
+             -> Handler Point
+requirePoint lat lon =
+    let readParam :: Read a => Text -> Handler a
+        readParam name = requireGetParam name >>=
+            maybe (invalidArgs [name <> ": invalid number"]) pure . readMay . unpack
+    in Point <$> readParam lat <*> readParam lon
+
+readMay s = case reads s of
+    [(x, "")] -> Just x
+    _ -> Nothing
