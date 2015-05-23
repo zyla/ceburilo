@@ -3,6 +3,10 @@ module Graph where
 import Data.Set as S
 import Data.IntMap as IM
 import Data.Graph.AStar as AS
+import Control.Applicative
+import qualified Data.ByteString.Lazy as BS
+import Data.Aeson
+import Types
 
 type Distance = Float
 type Graph = IM.IntMap Node
@@ -63,4 +67,25 @@ generateRoute graph start goal =
            (getStraightDistance graph goal)
            (foundGoal goal)
            start
+
+parseJSONFromFile :: FromJSON a => FilePath -> IO (Maybe a)
+parseJSONFromFile file =
+  decode <$> BS.readFile file
+
+readGraphFromFile :: FilePath -> IO (Maybe Graph)
+readGraphFromFile fileName = do
+  database <- parseJSONFromFile fileName
+  return $ createGraph <$> database
+    where
+      createGraph :: [StationPaths] -> Graph
+      createGraph =
+        IM.fromList . fmap stationToPair
+      stationToPair (StationPaths (Station number name (Point lat lon)) paths) =
+          (number, node)
+        where
+          node = Node edges lon lat
+          edges = IM.fromList $ fmap stationPathToPair paths
+          stationPathToPair (StationPath number path) =
+            (number, pathDistance path)
+
 
