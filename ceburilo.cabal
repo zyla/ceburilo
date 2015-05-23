@@ -38,3 +38,22 @@ executable ceburilo
     ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
     -- hs-source-dirs:
     default-language:    Haskell2010
+
+executable precompute
+  main-is:             precompute.hs
+  build-depends:       base >=4.7 && <4.8
+                     , http-types
+                     , http-client
+                     , bytestring
+                     , aeson
+                     , data-default
+                     , containers
+                     , xml-conduit
+                     , text
+                     , vector
+                     , split
+                     , async
+
+  other-modules: Types
+
+  default-language:    Haskell2010
