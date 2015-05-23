@@ -12,8 +12,8 @@ import Data.Text
 import Utils
 
 data Point = Point
-    { pointLatitude :: Float
-    , pointLongitude :: Float
+    { pointLatitude :: !Float
+    , pointLongitude :: !Float
     }
 
 instance Show Point where
@@ -30,7 +30,7 @@ instance ToJSON Point where
 data Path = Path
     { pathDistance :: Float
     , pathTime :: Float
-    , pathPoints :: Maybe [Point]
+    , pathPoints :: Maybe (V.Vector Point)
     } deriving (Show)
 
 instance FromJSON Path where
@@ -70,7 +70,7 @@ instance ToJSON Station where
 -- Station location together with paths to other stations
 data StationPaths = StationPaths
     { spStation :: Station
-    , spPaths :: [StationPath]
+    , spPaths :: V.Vector StationPath
     -- ^ Paths to other stations
     }
 

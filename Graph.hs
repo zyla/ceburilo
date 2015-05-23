@@ -3,6 +3,7 @@ module Graph where
 import Data.Set as S
 import Data.IntMap as IM
 import Data.Graph.AStar as AS
+import qualified Data.Vector as V
 import Control.Applicative
 import qualified Data.ByteString.Lazy as BS
 import Data.Aeson
@@ -81,9 +82,8 @@ buildGraph = IM.fromList . fmap stationToPair
         (number, node)
       where
         node = Node edges lon lat
-        edges = IM.fromList $ fmap stationPathToPair paths
-        stationPathToPair (StationPath number path) =
-          (number, pathTime path)
+        edges = IM.fromList $ fmap spToPair $ V.toList paths
+        spToPair (StationPath number path) = (number, pathTime path)
 
 readGraphFromFile :: FilePath -> IO (Maybe Graph)
 readGraphFromFile fileName =
