@@ -58,9 +58,6 @@ getRoute start end manager = do
     body <- responseBody <$> httpLbs req manager
     return $ fmap routePath $ Aeson.eitherDecode body
 
--- Maximum allowed time (20 minutes), in milliseconds.
-maxTime = 20 * 60 * 1000
-
 getStations :: Document -> [Station]
 getStations = mapMaybe getStation . elementNodes . documentRoot
   where
@@ -78,16 +75,15 @@ readMay s = case reads s of
     _ -> Nothing
 
 -- Split the list into chunks and apply given action in parallel for each chunk.
-concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 4
+concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 8
 
 getStationRoutes :: [Station] -> Station -> Manager -> IO [StationPath]
 getStationRoutes stations beginStation manager =
-    let goodPath = (<= maxTime) . pathTime
-        routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
+    let routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
             Right route -> return $ Just (dest, route)
             Left _ -> return Nothing
 
-    in fmap (fmap (uncurry StationPath . first stationNumber) . filter (goodPath . snd) . catMaybes) $
+    in fmap (fmap (uncurry StationPath . first stationNumber) . catMaybes) $
         concurrently routeToStation $
         filter (/= beginStation) $
         stations

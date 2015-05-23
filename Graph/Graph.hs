@@ -17,25 +17,26 @@ data Node = Node { edges :: IM.IntMap Distance,
                    latitude :: Distance
                  }
 
+-- How much time it takes to change bike (2 minutes)
+-- in milliseconds
+bikeChangeTime = 2 * 60 * 1000
 
 getDistance :: Graph -> Key -> Key -> Distance
-getDistance graph start goal =
+getDistance graph start goal = if start == goal then 0 else
 -- very unsafe, but a* has proper assumption
-  (edges (graph ! start)) ! goal
+  (edges (graph ! start)) ! goal + bikeChangeTime
 
 getNeighbours :: Graph -> Key -> Set Key
 getNeighbours graph nodeKey =
 -- nodeKey will exist in DB!
   S.fromList $ IM.keys $ edges $ (graph ! nodeKey)
 
-getStraightDistance :: Graph -> Key -> Key -> Distance
-getStraightDistance graph goal start =
-  sqrt ( (x1-x2)^2 + (y1-y2)^2 )
-    where
-      x1 = longitude $ (graph ! goal)
-      x2 = longitude $ (graph ! start)
-      y1 = latitude $ (graph ! goal)
-      y2 = latitude $ (graph ! start)
+-- Maximum allowed time (20 minutes), in milliseconds.
+maxTime = 20 * 60 * 1000
+
+getAllowedTimeNeighbours :: Graph -> Key -> Set Key
+getAllowedTimeNeighbours graph nodeKey = 
+  S.fromList $ IM.keys $ IM.filter (<= maxTime) $ edges $ (graph ! nodeKey)
 
 foundGoal :: Key -> Key -> Bool
 foundGoal goal node = (goal == node)
@@ -62,9 +63,9 @@ addEdgeToGraph graph start goal dist =
 
 generateRoute :: Graph -> Key -> Key -> Maybe [Key]
 generateRoute graph start goal =
-  AS.aStar (getNeighbours graph)
+  AS.aStar (getAllowedTimeNeighbours graph)
            (getDistance graph)
-           (getStraightDistance graph goal)
+           (getDistance graph goal)
            (foundGoal goal)
            start
 
@@ -86,6 +87,6 @@ readGraphFromFile fileName = do
           node = Node edges lon lat
           edges = IM.fromList $ fmap stationPathToPair paths
           stationPathToPair (StationPath number path) =
-            (number, pathDistance path)
+            (number, pathTime path)
 
 
