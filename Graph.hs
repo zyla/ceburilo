@@ -73,20 +73,20 @@ parseJSONFromFile :: FromJSON a => FilePath -> IO (Maybe a)
 parseJSONFromFile file =
   decode <$> BS.readFile file
 
+
+buildGraph :: [StationPaths] -> Graph
+buildGraph = IM.fromList . fmap stationToPair
+  where
+    stationToPair (StationPaths (Station number name (Point lat lon)) paths) =
+        (number, node)
+      where
+        node = Node edges lon lat
+        edges = IM.fromList $ fmap stationPathToPair paths
+        stationPathToPair (StationPath number path) =
+          (number, pathTime path)
+
 readGraphFromFile :: FilePath -> IO (Maybe Graph)
-readGraphFromFile fileName = do
-  database <- parseJSONFromFile fileName
-  return $ createGraph <$> database
-    where
-      createGraph :: [StationPaths] -> Graph
-      createGraph =
-        IM.fromList . fmap stationToPair
-      stationToPair (StationPaths (Station number name (Point lat lon)) paths) =
-          (number, node)
-        where
-          node = Node edges lon lat
-          edges = IM.fromList $ fmap stationPathToPair paths
-          stationPathToPair (StationPath number path) =
-            (number, pathTime path)
+readGraphFromFile fileName =
+  fmap buildGraph <$> parseJSONFromFile fileName
 
 
