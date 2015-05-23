@@ -5,7 +5,26 @@ module Handler.Route where
 import Import
 import Yesod.Core
 import Types
+import Utils
+import Data.Aeson.TH
+import Data.Text
 
+data RouteRequest = RouteRequest
+    {   rr_begPoint :: (Float, Float)
+    ,   rr_destPoint :: (Float, Float)
+    ,   rr_begining :: Text
+    ,   rr_destination :: Text
+    }
+
+deriveFromJSON jsonOptions ''RouteRequest
+
+data RouteView = RouteView
+    {   rv_path :: Path
+    ,   rv_begining :: Text
+    ,   rv_destination :: Text
+    }
+
+deriveToJSON jsonOptions ''RouteView
 
 getRouteR :: Handler Value
 getRouteR = return $ toJSON $ RouteView path "Lokacja początkowa" "Cel podróży"

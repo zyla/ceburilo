@@ -109,10 +109,3 @@ instance FromJSON StationPath where
     parseJSON = withObject "StationPath" $ \obj ->
         StationPath <$> obj .: "number" <*> obj .: "path"
 
-data RouteView = RouteView
-    {   rv_path :: Path
-    ,   rv_beggining :: Text
-    ,   rv_destination :: Text
-    }
-
-deriveToJSON jsonOptions ''RouteView
