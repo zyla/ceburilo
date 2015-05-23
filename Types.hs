@@ -8,16 +8,8 @@ import qualified Data.Vector as V
 import qualified Data.Map as M
 
 import Data.Aeson.TH
+import Data.Text
 import Utils
-
-
-data RouteView = RouteView
-    {
-        rv_data :: String
---        rv_routePoints :: [LocationPoint]
-    }
-
-deriveToJSON jsonOptions ''RouteView
 
 data Point = Point
     { pointLatitude :: Float
@@ -116,3 +108,11 @@ instance ToJSON StationPath where
 instance FromJSON StationPath where
     parseJSON = withObject "StationPath" $ \obj ->
         StationPath <$> obj .: "number" <*> obj .: "path"
+
+data RouteView = RouteView
+    {   rv_path :: Path
+    ,   rv_beggining :: Text
+    ,   rv_destination :: Text
+    }
+
+deriveToJSON jsonOptions ''RouteView

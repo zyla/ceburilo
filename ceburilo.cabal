@@ -38,6 +38,7 @@ executable ceburilo
                         , aeson
                         , vector
                         , containers
+                        , text
 
     ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
     -- hs-source-dirs:
@@ -57,6 +58,7 @@ executable precompute
                      , vector
                      , split
                      , async
+                     , text
 
   other-modules: Types
 
