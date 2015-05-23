@@ -9,15 +9,6 @@ import Utils
 import Data.Aeson.TH
 import Data.Text
 
-data RouteRequest = RouteRequest
-    {   rr_begPoint :: (Float, Float)
-    ,   rr_destPoint :: (Float, Float)
-    ,   rr_begining :: Text
-    ,   rr_destination :: Text
-    }
-
-deriveFromJSON jsonOptions ''RouteRequest
-
 data RouteView = RouteView
     {   rv_path :: Path
     ,   rv_begining :: Text
@@ -27,7 +18,16 @@ data RouteView = RouteView
 deriveToJSON jsonOptions ''RouteView
 
 getRouteR :: Handler Value
-getRouteR = return $ toJSON $ RouteView path "Lokacja początkowa" "Cel podróży"
+getRouteR = do
+    begName <- lookupGetParam "begining"
+    destName <- lookupGetParam "destination"
+
+    begLat <- requireGetParam "beg_lat"
+    destLat <- requireGetParam "dest_lat"
+    begLng <- requireGetParam "beg_lng"
+    destLng <- requireGetParam "dest_lng"
+
+    return $ toJSON $ RouteView path (maybe "" id begName) (maybe "" id destName)
     where path = Path 30 234000
                     [   Instruction "Skręć prosto" (0, 3)
                     ,   Instruction "Zawróć" (3, 4)

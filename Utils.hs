@@ -1,13 +1,29 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Utils
     (
-    jsonOptions
+    jsonOptions,
+    requireGetParam
     ) where
 import Data.Char (isUpper, toLower)
 import Data.Aeson.TH
+import Yesod.Core
+import Import
+import Data.Text
+import Data.Maybe
+import Control.Monad
+import Control.Applicative
 
 
 
 -- Options to use with deriveJSON
+requireGetParam :: MonadHandler m => Text -> m Text
+requireGetParam paramName = do
+    param <- lookupGetParam paramName
+    fromMaybe
+        (sendResponseStatus status400 (append ("Missing parameter " :: Text) paramName))
+        (return <$> param)
+
+
 jsonOptions :: Options
 jsonOptions = defaultOptions
     { fieldLabelModifier = fieldNameToJSON
