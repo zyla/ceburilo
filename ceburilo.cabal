@@ -19,15 +19,21 @@ executable ceburilo
     main-is:            Main.hs
     other-modules:      Application
                         Foundation
+                        Import
+                        Objects
                         Handler.Home
 
     ghc-options:        -Wall -fwarn-tabs -O2
-    -- other-extensions:
+
+    extensions: TemplateHaskell
+                LambdaCase
+
     build-depends:      base >=4.7 && <4.8
                         , OSM
                         , astar
                         , yesod-core
                         , http-types
+                        , aeson
 
     ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
     -- hs-source-dirs:

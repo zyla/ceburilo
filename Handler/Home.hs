@@ -5,10 +5,5 @@ module Handler.Home where
 import Import
 import Yesod.Core
 
-getHomeR :: Handler Html
-getHomeR = defaultLayout $ do
-    setTitle "Minimal Multifile"
-    [whamlet|
-        <p>
-        <p>
-    |]
+getHomeR :: Handler ()
+getHomeR = return ()
