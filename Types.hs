@@ -88,8 +88,8 @@ instance Eq Station where
 -- Station location together with paths to other stations
 data StationPaths = StationPaths
     { spStation :: Station
-    , spPaths :: M.Map StationNumber Path
-    -- ^ Mapping from station number to path to the station
+    , spPaths :: [StationPath]
+    -- ^ Paths to other stations
     }
 
 instance FromJSON StationPaths where
@@ -104,3 +104,15 @@ instance ToJSON StationPaths where
         , "location" .= stationLocation spStation
         , "paths" .= spPaths
         ]
+
+data StationPath = StationPath StationNumber Path
+
+instance ToJSON StationPath where
+    toJSON (StationPath number path) = object
+        [ "number" .= number
+        , "path" .= path
+        ]
+
+instance FromJSON StationPath where
+    parseJSON = withObject "StationPath" $ \obj ->
+        StationPath <$> obj .: "number" <*> obj .: "path"

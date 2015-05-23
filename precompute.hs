@@ -80,14 +80,14 @@ readMay s = case reads s of
 -- Split the list into chunks and apply given action in parallel for each chunk.
 concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 4
 
-getStationRoutes :: [Station] -> Station -> Manager -> IO (M.Map StationNumber Path)
+getStationRoutes :: [Station] -> Station -> Manager -> IO [StationPath]
 getStationRoutes stations beginStation manager =
     let goodPath = (<= maxTime) . pathTime
         routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
             Right route -> return $ Just (dest, route)
             Left _ -> return Nothing
 
-    in fmap (M.fromList . fmap (first stationNumber) . filter (goodPath . snd) . catMaybes) $
+    in fmap (fmap (uncurry StationPath . first stationNumber) . filter (goodPath . snd) . catMaybes) $
         concurrently routeToStation $
         filter (/= beginStation) $
         stations
