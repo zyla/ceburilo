@@ -1,14 +1,6 @@
 import Data.Set as S
 import Data.IntMap as IM
 
--- TODO:
--- getDistance ( [DB ->] a->a->c)
--- getNeighbours ([DB ->] a-> Set a)
--- getStraightDistance ([DB -> goal] -> a->c)
--- foundGoal ([DB -> a ->] a -> Bool)
-
--- loadData
-
 type Distance = Float
 type Graph = IM.IntMap Node
 --data Key = Int
@@ -41,21 +33,23 @@ getStraightDistance graph goal start =
 foundGoal :: Key -> Key -> Bool
 foundGoal goal node = (goal == node)
 
--- TODO: wywal error gdy drugi raz ten sam wierzcholek
+-- In case you needed, change [] case for debugging
 addNodeToGraph :: Graph -> Key -> Distance -> Distance -> Graph
-addNodeToGraph graph id long lat = IM.insert id (Node IM.empty long lat) graph
+addNodeToGraph graph id long lat =
+  case IM.lookup id graph of
+    Nothing -> graph -- error "Node with given id already exist"
+    (Just _) -> IM.insert id (Node IM.empty long lat) graph
 
+
+-- In case you needed, change [] case for debuggin
 addEdgeToGraph :: Graph -> Key -> Key -> Distance -> Graph
 addEdgeToGraph graph start goal dist =
   case mNode of
-    Nothing -> error "Path leads to not existing node"
+    Nothing -> graph -- error "Path leads to not existing node"
     (Just node) -> IM.insert start (Node (IM.insert goal dist (edges node))
                                       (longitude node)
                                       (latitude node) ) graph
     where
       mNode = IM.lookup start graph
 
-
---main :: IO()
---main =
 
