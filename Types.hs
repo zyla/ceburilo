@@ -74,7 +74,7 @@ instance FromJSON Instruction where
         Instruction <$> obj .: "text"
                     <*> obj .: "interval"
 
-type StationNumber = String
+type StationNumber = Int
 
 data Station = Station
     { stationNumber :: StationNumber

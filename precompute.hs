@@ -65,7 +65,7 @@ getStations :: Document -> [Station]
 getStations = mapMaybe getStation . elementNodes . documentRoot
   where
     getStation (NodeElement (Element "place" attrs _)) =
-        Station <$> attr "number" <*> attr "name" <*>
+        Station <$> (attr "number" >>= readMay) <*> attr "name" <*>
             (Point <$> (attr "lat" >>= readMay) <*> (attr "lng" >>= readMay))
       where
         attr :: Name -> Maybe String
