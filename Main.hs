@@ -1,5 +1,5 @@
 import Application () -- for YesodDispatch instance
-import Foundation
+import Import
 import Yesod.Core
 
 main :: IO ()

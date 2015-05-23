@@ -2,7 +2,7 @@
 {-# LANGUAGE QuasiQuotes       #-}
 module Handler.Home where
 
-import Foundation
+import Import
 import Yesod.Core
 
 getHomeR :: Handler Html

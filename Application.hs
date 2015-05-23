@@ -3,9 +3,10 @@
 {-# LANGUAGE ViewPatterns      #-}
 module Application where
 
-import Foundation
+import Import
 import Yesod.Core
 
 import Handler.Home
+import Handler.Route
 
 mkYesodDispatch "App" resourcesApp
