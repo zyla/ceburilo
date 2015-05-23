@@ -19,9 +19,7 @@ executable ceburilo
   main-is:             Main.hs
   other-modules:    Application
                     Foundation
-
-                    Add
-                    Home
+                    Handler.Home
 
   ghc-options:      -Wall -fwarn-tabs -O2
   -- other-modules:       

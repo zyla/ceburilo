@@ -6,7 +6,6 @@ module Application where
 import Foundation
 import Yesod.Core
 
-import Add
-import Home
+import Handler.Home
 
 mkYesodDispatch "App" resourcesApp
