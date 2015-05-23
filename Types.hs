@@ -9,7 +9,6 @@ import qualified Data.Map as M
 
 import Data.Aeson.TH
 import Data.Text
-import Utils
 
 data Point = Point
     { pointLatitude :: !Float
