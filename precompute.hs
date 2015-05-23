@@ -56,7 +56,15 @@ getRoute start end manager = do
             ]
         formatPoint (Point lat lon) = fromString $ show lat ++ "," ++ show lon
     body <- responseBody <$> httpLbs req manager
-    return $ fmap routePath $ Aeson.eitherDecode body
+    return $ fmap (filterPath . routePath) $ Aeson.eitherDecode body
+
+-- Maximum allowed time (20 minutes), in milliseconds.
+maxTime = 20 * 60 * 1000
+
+-- Get rid of path's points if it's above maximium allowed time.
+filterPath :: Path -> Path
+filterPath (Path distance time _) | time > maxTime = Path distance time Nothing
+filterPath path = path
 
 getStations :: Document -> [Station]
 getStations = mapMaybe getStation . elementNodes . documentRoot

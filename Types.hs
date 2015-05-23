@@ -29,41 +29,24 @@ instance ToJSON Point where
 data Path = Path
     { pathDistance :: Float
     , pathTime :: Float
-    , pathInstructions :: [Instruction]
-    , pathPoints :: [Point]
+    , pathPoints :: Maybe [Point]
     } deriving (Show)
 
 instance FromJSON Path where
     parseJSON = withObject "Path" $ \obj ->
         Path <$> obj .: "distance"
              <*> obj .: "time"
-             <*> obj .: "instructions"
-             <*> ((obj .: "points") >>= (.: "coordinates"))
+             <*> (((obj .: "points") >>= (.: "coordinates")) <|> pure Nothing)
 
 instance ToJSON Path where
     toJSON Path{..} = object
         [ "distance" .= pathDistance
         , "time" .= pathTime
-        , "instructions" .= pathInstructions
-        , "points" .= object [ "coordinates" .= pathPoints ]
+        , "points" .= (case pathPoints of
+            Just pp -> object [ "coordinates" .= pp ]
+            Nothing -> Null
+          )
         ]
-
--- One step of a route.
-data Instruction = Instruction
-    { instructionText :: String
-    , instructionInterval :: (Int, Int)
-    } deriving (Eq, Show)
-
-instance ToJSON Instruction where
-    toJSON Instruction{..} = object
-        [ "text" .= instructionText
-        , "interval" .= instructionInterval
-        ]
-
-instance FromJSON Instruction where
-    parseJSON = withObject "Instruction" $ \obj ->
-        Instruction <$> obj .: "text"
-                    <*> obj .: "interval"
 
 type StationNumber = Int
 

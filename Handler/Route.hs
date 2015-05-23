@@ -28,10 +28,7 @@ getRouteR = do
     destLng <- requireGetParam "dest_lng"
 
     return $ toJSON $ RouteView path (maybe "" id begName) (maybe "" id destName)
-    where path = Path 30 234000
-                    [   Instruction "Skręć prosto" (0, 3)
-                    ,   Instruction "Zawróć" (3, 4)
-                    ]
+    where path = Path 30 234000 $ Just
                     [    Point 52.235707713687624 20.996793508529663
                     ,    Point 52.24884675795982 21.005457043647766
                     ,    Point 52.230217725853215 21.01259171962738
