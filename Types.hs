@@ -1,10 +1,22 @@
 -- | Common type definitions for routes.
-{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, RecordWildCards #-}
 module Types where
 
 import Control.Applicative
 import Data.Aeson
 import qualified Data.Vector as V
+
+import Data.Aeson.TH
+import Utils
+
+
+data RouteView = RouteView
+    {
+        rv_data :: String
+--        rv_routePoints :: [LocationPoint]
+    }
+
+deriveToJSON jsonOptions ''RouteView
 
 data Point = Point
     { pointLatitude :: Float
@@ -62,7 +74,7 @@ instance FromJSON Instruction where
                     <*> obj .: "interval"
 
 data Station = Station
-    { stationNumber :: String
+    { stationNumber :: Int
     , stationName :: String
     , stationLocation :: Point
     } deriving (Show)
