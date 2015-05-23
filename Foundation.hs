@@ -5,8 +5,12 @@
 module Foundation where
 
 import Yesod.Core
+import Graph
+import Types
 
 data App = App
+    { appGraph :: Graph
+    }
 
 mkYesodData "App" $(parseRoutesFile "config/routes")
 

@@ -33,6 +33,8 @@ getRouteR = do
     begLng <- requireGetParam "beg_lng"
     destLng <- requireGetParam "dest_lng"
 
+    graph <- appGraph <$> getYesod
+
     return $ toJSON $ RouteView path stations (fromMaybe "" begName) (fromMaybe "" destName)
     where path = Path 30 234000 $ Just $ V.fromList
                     [    Point 52.235707713687624 20.996793508529663
