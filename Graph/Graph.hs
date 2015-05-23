@@ -1,5 +1,8 @@
+module Graph where
+
 import Data.Set as S
 import Data.IntMap as IM
+import Data.Graph.AStar as AS
 
 type Distance = Float
 type Graph = IM.IntMap Node
@@ -52,4 +55,12 @@ addEdgeToGraph graph start goal dist =
     where
       mNode = IM.lookup start graph
 
+
+generateRoute :: Graph -> Key -> Key -> Maybe [Key]
+generateRoute graph start goal =
+  AS.aStar (getNeighbours graph)
+           (getDistance graph)
+           (getStraightDistance graph goal)
+           (foundGoal goal)
+           start
 
