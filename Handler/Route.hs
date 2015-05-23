@@ -11,6 +11,7 @@ import Data.Text
 import Data.Maybe
 import Control.Monad
 import Control.Applicative
+import qualified Data.Vector as V
 import Graph
 
 data RouteView = RouteView
@@ -33,7 +34,7 @@ getRouteR = do
     destLng <- requireGetParam "dest_lng"
 
     return $ toJSON $ RouteView path stations (fromMaybe "" begName) (fromMaybe "" destName)
-    where path = Path 30 234000 $ Just
+    where path = Path 30 234000 $ Just $ V.fromList
                     [    Point 52.235707713687624 20.996793508529663
                     ,    Point 52.24884675795982 21.005457043647766
                     ,    Point 52.230217725853215 21.01259171962738
