@@ -9,6 +9,7 @@ import qualified Data.Map as M
 
 import Data.Aeson.TH
 import Data.Text
+import Utils
 
 data Point = Point
     { pointLatitude :: Float
@@ -45,7 +46,7 @@ instance ToJSON Path where
         , "points" .= (case pathPoints of
             Just pp -> object [ "coordinates" .= pp ]
             Nothing -> Null
-          )
+        )
         ]
 
 type StationNumber = Int
@@ -58,6 +59,13 @@ data Station = Station
 
 instance Eq Station where
     (Station n1 _ _) == (Station n2 _ _) = n1 == n2
+
+instance ToJSON Station where
+    toJSON Station{..} = object
+        [ "number" .= stationNumber
+        , "name" .= stationName
+        , "location" .= stationLocation
+        ]
 
 -- Station location together with paths to other stations
 data StationPaths = StationPaths
