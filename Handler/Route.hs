@@ -49,7 +49,7 @@ getRouteR = do
     destStationCoord <- requirePoint "dest_lat" "dest_lon"
 
     let beginStation = nearestStation beginStationCoord
-        destStation = nearestStation beginStationCoord
+        destStation = nearestStation destStationCoord
 
     case generateRoute graph beginStation destStation of
       Just stationNumbers ->
