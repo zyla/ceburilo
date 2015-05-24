@@ -7,11 +7,11 @@ module Foundation where
 import Yesod.Core
 import Graph
 import Types
-import qualified Data.Map as M
+import qualified Data.IntMap as IM
 
 data App = App
     { appGraph :: Graph
-    , appStationPaths :: M.Map StationNumber StationPaths
+    , appStationPaths :: IM.IntMap StationPaths
     }
 
 mkYesodData "App" $(parseRoutesFile "config/routes")

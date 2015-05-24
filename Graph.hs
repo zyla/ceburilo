@@ -82,8 +82,7 @@ buildGraph = IM.fromList . fmap stationToPair
         (number, node)
       where
         node = Node edges lon lat
-        edges = IM.fromList $ fmap spToPair $ V.toList paths
-        spToPair (StationPath number path) = (number, pathTime path)
+        edges = fmap pathTime paths
 
 readGraphFromFile :: FilePath -> IO (Maybe Graph)
 readGraphFromFile fileName =

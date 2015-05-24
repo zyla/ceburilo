@@ -7,7 +7,7 @@ import Yesod.Core
 import Types
 import Utils
 import Data.Aeson.TH
-import Data.Text
+import Data.Text hiding (zip)
 import Data.Maybe
 import Data.List
 import Data.Ord
@@ -15,7 +15,7 @@ import Control.Monad
 import Control.Applicative
 import Data.Monoid
 import qualified Data.Vector as V
-import qualified Data.Map as M
+import qualified Data.IntMap as IM
 import Graph
 
 data RouteView = RouteView
@@ -35,8 +35,9 @@ getRouteR = do
     graph <- appGraph <$> getYesod
     stationPaths <- appStationPaths <$> getYesod
 
-    let lookupStation = fmap spStation . flip M.lookup stationPaths
-        allStations = fmap spStation $ M.elems stationPaths
+    let lookupStation = fmap spStation . flip IM.lookup stationPaths
+        lookupPath from to = IM.lookup from stationPaths >>= IM.lookup to . spPaths
+        allStations = fmap spStation $ IM.elems stationPaths
         nearestStation point = stationNumber $
             minimumBy (comparing $ distanceSq point . stationLocation) $
             allStations
@@ -47,7 +48,8 @@ getRouteR = do
     case generateRoute graph beginStation destStation of
       Just stationNumbers ->
         let stations = mapMaybe lookupStation (beginStation:stationNumbers)
-            path = Path 0 0 Nothing -- FIXME
+            stationPairs = zip (beginStation:stationNumbers) stationNumbers
+            path = mconcat $ mapMaybe (uncurry lookupPath) stationPairs
         in return $ toJSON $
             RouteView path stations begName destName
       

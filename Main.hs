@@ -8,7 +8,7 @@ import Network.Wai.Middleware.Cors
 import Yesod.Core
 import Graph
 import Types
-import qualified Data.Map as M
+import qualified Data.IntMap as IM
 
 loadApp :: IO App
 loadApp = do
@@ -17,7 +17,7 @@ loadApp = do
     let graph = buildGraph paths
     return $ App graph (stationsToMap paths)
 
-stationsToMap = M.fromList . map spToPair
+stationsToMap = IM.fromList . map spToPair
   where spToPair sp@(StationPaths (Station number _ _) _) = (number, sp)
 
 main :: IO ()

@@ -3,9 +3,11 @@
 module Types where
 
 import Control.Applicative
+import Data.Monoid
 import Data.Aeson
+import Data.Maybe
 import qualified Data.Vector as V
-import qualified Data.Map as M
+import qualified Data.IntMap as IM
 
 import Data.Aeson.TH
 import Data.Text
@@ -51,6 +53,12 @@ instance ToJSON Path where
         )
         ]
 
+instance Monoid Path where
+    mempty = Path 0 0 Nothing
+    (Path d1 t1 p1) `mappend` (Path d2 t2 p2) =
+        Path (d1 + d2) (t1 + t2)
+             (Just $ fromMaybe V.empty p1 <> fromMaybe V.empty p2)
+
 type StationNumber = Int
 
 data Station = Station
@@ -72,24 +80,27 @@ instance ToJSON Station where
 -- Station location together with paths to other stations
 data StationPaths = StationPaths
     { spStation :: Station
-    , spPaths :: V.Vector StationPath
+    , spPaths :: IM.IntMap Path
     -- ^ Paths to other stations
     }
 
 instance FromJSON StationPaths where
     parseJSON = withObject "StationPaths" $ \obj ->
         StationPaths <$> (Station <$> obj .: "number" <*> obj .: "name" <*> obj .: "location")
-                     <*> obj .: "paths"
+                     <*> (IM.fromList <$> fmap spToPair <$> obj .: "paths")
 
 instance ToJSON StationPaths where
     toJSON StationPaths{..} = object
         [ "number" .= stationNumber spStation
         , "name" .= stationName spStation
         , "location" .= stationLocation spStation
-        , "paths" .= spPaths
+        , "paths" .= fmap pairToStationPath (IM.toList spPaths)
         ]
 
 data StationPath = StationPath StationNumber Path
+
+spToPair (StationPath number path) = (number, path)
+pairToStationPath (number, path) = StationPath number path
 
 instance ToJSON StationPath where
     toJSON (StationPath number path) = object
