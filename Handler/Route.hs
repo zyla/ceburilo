@@ -21,15 +21,17 @@ import Graph
 data RouteView = RouteView
     {   rv_path :: Path
     ,   rv_stations :: [Station]
-    ,   rv_begining :: Text
+    ,   rv_beginning :: Text
     ,   rv_destination :: Text
+    ,   rv_begCoord :: Point
+    ,   rv_destCoord :: Point
     }
 
 deriveToJSON jsonOptions ''RouteView
 
 getRouteR :: Handler Value
 getRouteR = do
-    begName <- fromMaybe "" <$> lookupGetParam "begining"
+    begName <- fromMaybe "" <$> lookupGetParam "beginning"
     destName <- fromMaybe "" <$> lookupGetParam "destination"
 
     graph <- appGraph <$> getYesod
@@ -42,8 +44,12 @@ getRouteR = do
             minimumBy (comparing $ distanceSq point . stationLocation) $
             allStations
 
-    beginStation <- nearestStation <$> requirePoint "beg_lat" "beg_lon"
-    destStation <- nearestStation <$> requirePoint "dest_lat" "dest_lon"
+
+    beginStationCoord <- requirePoint "beg_lat" "beg_lon"
+    destStationCoord <- requirePoint "dest_lat" "dest_lon"
+
+    let beginStation = nearestStation beginStationCoord
+        destStation = nearestStation beginStationCoord
 
     case generateRoute graph beginStation destStation of
       Just stationNumbers ->
@@ -51,8 +57,8 @@ getRouteR = do
             stationPairs = zip (beginStation:stationNumbers) stationNumbers
             path = mconcat $ mapMaybe (uncurry lookupPath) stationPairs
         in return $ toJSON $
-            RouteView path stations begName destName
-      
+            RouteView path stations begName destName beginStationCoord destStationCoord
+
       Nothing -> sendResponseStatus status404 ("GÓWNO" :: Text)
 
 requirePoint :: Text -- ^ latitude field
