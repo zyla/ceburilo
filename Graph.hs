@@ -14,8 +14,8 @@ type Graph = IM.IntMap Node
 --data Key = Int
 
 data Node = Node { edges :: IM.IntMap Distance,
-                   longitude :: Distance,
-                   latitude :: Distance
+                   latitude :: Distance,
+                   longitude :: Distance
                  }
 
 -- How much time it takes to change bike (2 minutes)
@@ -36,7 +36,7 @@ getNeighbours graph nodeKey =
 maxTime = 20 * 60 * 1000
 
 getAllowedTimeNeighbours :: Graph -> Key -> Set Key
-getAllowedTimeNeighbours graph nodeKey = 
+getAllowedTimeNeighbours graph nodeKey =
   S.fromList $ IM.keys $ IM.filter (<= maxTime) $ edges $ (graph ! nodeKey)
 
 foundGoal :: Key -> Key -> Bool
@@ -47,7 +47,7 @@ addNodeToGraph :: Graph -> Key -> Distance -> Distance -> Graph
 addNodeToGraph graph id long lat =
   case IM.lookup id graph of
     Nothing -> graph -- error "Node with given id already exist"
-    (Just _) -> IM.insert id (Node IM.empty long lat) graph
+    (Just _) -> IM.insert id (Node IM.empty lat long) graph
 
 
 -- In case you needed, change [] case for debuggin
@@ -56,8 +56,8 @@ addEdgeToGraph graph start goal dist =
   case mNode of
     Nothing -> graph -- error "Path leads to not existing node"
     (Just node) -> IM.insert start (Node (IM.insert goal dist (edges node))
-                                      (longitude node)
-                                      (latitude node) ) graph
+                                      (latitude node)
+                                      (longitude node)) graph
     where
       mNode = IM.lookup start graph
 
@@ -81,11 +81,10 @@ buildGraph = IM.fromList . fmap stationToPair
     stationToPair (StationPaths (Station number name (Point lat lon)) paths) =
         (number, node)
       where
-        node = Node edges lon lat
+        node = Node edges lat lon
         edges = fmap pathTime paths
 
 readGraphFromFile :: FilePath -> IO (Maybe Graph)
 readGraphFromFile fileName =
   fmap buildGraph <$> parseJSONFromFile fileName
-
 
