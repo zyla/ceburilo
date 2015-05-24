@@ -9,6 +9,7 @@ import Yesod.Core
 import Graph
 import Types
 import qualified Data.IntMap as IM
+import System.Environment
 
 loadApp :: IO App
 loadApp = do
@@ -22,6 +23,7 @@ stationsToMap = IM.fromList . map spToPair
 
 main :: IO ()
 main = do
+    port <- maybe 4000 read <$> lookupEnv "PORT"
     app <- loadApp
     waiApp <- toWaiApp app
-    run 4000 $ simpleCors waiApp
+    run port $ simpleCors waiApp
