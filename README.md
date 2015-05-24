@@ -10,17 +10,17 @@ URL:
 
 Parametry:
 
-- beg_lat - wymagany
-- beg_lng - wymagany
-- dest_lat - wymagany
-- dest_lng - wymagany
-- begining - nazwa lokacji początkowej (zwracana bez zmian w odpowiedzi)
-- destination - nazwa lokacji końcowej (zwracana bez zmian w odpowiedzi)
+- `beg_lat` - wymagany
+- `beg_lng` - wymagany
+- `dest_lat` - wymagany
+- `dest_lng` - wymagany
+- `beginning` - nazwa lokacji początkowej (zwracana bez zmian w odpowiedzi)
+- `destination` - nazwa lokacji końcowej (zwracana bez zmian w odpowiedzi)
 
 Odpowiedź:
 
     {
-        "begining": STRING // nazwa lokacji podana w argumencie
+        "beginning": STRING // nazwa lokacji podana w argumencie
         "destination": STRING, // nazwa lokacji podana w argumencie
         "path":
             {
@@ -57,5 +57,5 @@ Przykładowa odpowiedź:
                 "time": 234000,
                 "distance": 30,
             },
-            "begining": "dsa"
+            "beginning": "dsa"
     }
