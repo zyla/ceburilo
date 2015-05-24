@@ -30,15 +30,6 @@ Odpowiedź:
                 },
             "time": INT, // przewidywany czas trwania podróży (ms)
             "distance": INT, // dystans (m)
-            "instructions": // instrukcje
-                [
-                    {
-                        // tekst instrukcji
-                        "text": STRING,
-                        // indeksy wezłów na których trwa dana instrukcja (od 0)
-                        "interval": [INT, INT]
-                    }
-                ]
             },
     }
 
@@ -65,17 +56,6 @@ Przykładowa odpowiedź:
                     },
                 "time": 234000,
                 "distance": 30,
-                "instructions":
-                    [
-                        {
-                            "text": "Skręć prosto",
-                            "interval": [0,3]
-                        },
-                        {
-                            "text": "Zawróć",
-                            "interval": [3,4]
-                        }
-                    ]
             },
             "begining": "dsa"
     }
