@@ -30,8 +30,7 @@ executable ceburilo
     other-extensions:   ViewPatterns
                         RecordWildCards
 
-    build-depends:      base >=4.7 && <4.8
-                        , OSM
+    build-depends:      base >=4.7
                         , astar
                         , yesod-core
                         , http-types
@@ -50,7 +49,7 @@ executable ceburilo
 
 executable precompute
   main-is:             precompute.hs
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7
                      , http-types
                      , http-client
                      , bytestring
@@ -75,7 +74,7 @@ executable route
 
     ghc-options:        -Wall -fwarn-tabs -O2
 
-    build-depends:      base >=4.7 && <4.8
+    build-depends:      base >=4.7
                         , astar
                         , aeson
                         , vector
