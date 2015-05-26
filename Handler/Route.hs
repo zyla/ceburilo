@@ -41,7 +41,7 @@ getRouteR = do
         lookupPath from to = IM.lookup from stationPaths >>= IM.lookup to . spPaths
         allStations = fmap spStation $ IM.elems stationPaths
         nearestStation point = stationNumber $
-            minimumBy (comparing $ distanceSq point . stationLocation) $
+            minimumBy (comparing $ distanceEarth point . stationLocation) $
             allStations
 
 

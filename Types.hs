@@ -31,6 +31,25 @@ instance ToJSON Point where
 distanceSq :: Point -> Point -> Float
 distanceSq (Point x1 y1) (Point x2 y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
 
+hsin :: Float -> Float
+hsin t = ( sin (t/2))^2
+
+distanceRad :: Float -> Point -> Point -> Float
+distanceRad r (Point lat1 lon1) (Point lat2 lon2) =
+  2*r*asin(min 1.0 root)
+    where
+      root = sqrt (hlat + cos lat1 * cos lat2 * hlon)
+      hlat = hsin (lat2 - lat1)
+      hlon = hsin (lon2 - lon1)
+
+earthRadius :: Float
+earthRadius = 6372.8
+
+distanceEarth :: Point -> Point -> Float
+distanceEarth a b = distanceRad earthRadius (convToDeg a) (convToDeg b)
+  where
+    convToDeg (Point lat lon) = Point (lat*pi/180) (lon*pi/180)
+
 data Path = Path
     { pathDistance :: Float
     , pathTime :: Float
