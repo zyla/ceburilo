@@ -1,4 +1,4 @@
-Ceburilo
+Ceburilo API
 ========
 
 Wyszukanie trasy
@@ -22,6 +22,8 @@ Odpowiedź:
     {
         "beginning": STRING // nazwa lokacji podana w argumencie
         "destination": STRING, // nazwa lokacji podana w argumencie
+        "beg_coord": [FLOAT, FLOAT],
+        "dest_coord": [FLOAT, FLOAT],
         "path":
             {
             "points":
@@ -31,6 +33,12 @@ Odpowiedź:
             "time": INT, // przewidywany czas trwania podróży (ms)
             "distance": INT, // dystans (m)
             },
+        "stations":
+            [
+                "location": [FLOAT, FLOAT], // współrzędne stacji
+                "name": STRING, // nazwa stacji
+                "number": INT // numer stacji
+            ]
     }
 
 
@@ -41,6 +49,7 @@ Przykładowa odpowiedź:
 
     {
         "destination": "asd",
+        "dest_coord": [FLOAT, FLOAT],
         "path":
             {
                 "points":
@@ -57,5 +66,19 @@ Przykładowa odpowiedź:
                 "time": 234000,
                 "distance": 30,
             },
-            "beginning": "dsa"
+        "beginning": "dsa",
+        "beg_coord": [FLOAT, FLOAT],
+        "stations":
+            [
+                {
+                    "location": [52.133163, 21.07482]
+                    "name": "ul. Wąwozowa- ul.Rosoła"
+                    "number": 6446
+                },
+                {
+                "location": [52.162342, 21.038431]
+                "name": "SGGW I"
+                "number": 6341
+                }
+            ],
     }
