@@ -15,6 +15,7 @@ import Control.Concurrent.Async (mapConcurrently)
 import Network.HTTP.Client
 import Data.Aeson as Aeson
 
+import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Vector as V
 import qualified Data.Text as T
@@ -85,16 +86,21 @@ readMay s = case reads s of
 -- Split the list into chunks and apply given action in parallel for each chunk.
 concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 8
 
-getStationRoutes :: [Station] -> Station -> Manager -> IO [StationPath]
+getStationRoutes :: [Station] -> Station -> Manager -> IO (IM.IntMap Path)
 getStationRoutes stations beginStation manager =
-    let routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
+-- Is it possible to split into chunks? Currently it performs OK
+    foldM appendPath IM.empty (filter (/= beginStation) stations)
+      where
+      appendPath :: IM.IntMap Path -> Station -> IO (IM.IntMap Path)
+      appendPath intMap (Station num a b) = do
+        route <- routeToStation $ Station num a b
+        case route of
+          Just (Station dest _ _, path) -> return $ IM.insert dest path intMap
+          Nothing -> return intMap
+      routeToStation dest = getRoute (stationLocation beginStation) (stationLocation dest) manager >>= \case
             Right route -> return $ Just (dest, route)
             Left _ -> return Nothing
 
-    in fmap (fmap (uncurry StationPath . first stationNumber) . catMaybes) $
-        concurrently routeToStation $
-        filter (/= beginStation) $
-        stations
 
 processStations :: [Station] -> Manager -> IO [StationPaths]
 processStations stations manager = mapM getStationPaths' stations
