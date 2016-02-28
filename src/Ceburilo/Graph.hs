@@ -1,13 +1,11 @@
-module Graph where
+module Ceburilo.Graph where
 
 import Data.Set as S
 import Data.IntMap as IM
 import Data.Graph.AStar as AS
-import qualified Data.Vector as V
-import Control.Applicative
 import qualified Data.ByteString.Lazy as BS
 import Data.Aeson
-import Types
+import Ceburilo.Types
 
 type Distance = Float
 type Graph = IM.IntMap Node
@@ -20,6 +18,7 @@ data Node = Node { edges :: IM.IntMap Distance,
 
 -- How much time it takes to change bike (2 minutes)
 -- in milliseconds
+bikeChangeTime :: Distance
 bikeChangeTime = 2 * 60 * 1000
 
 getDistance :: Graph -> Key -> Key -> Distance
@@ -33,10 +32,11 @@ getNeighbours graph nodeKey =
   S.fromList $ IM.keys $ edges $ (graph ! nodeKey)
 
 -- Maximum allowed time (20 minutes), in milliseconds.
+maxTime :: Distance
 maxTime = 20 * 60 * 1000
 
 getAllowedTimeNeighbours :: Graph -> Key -> Set Key
-getAllowedTimeNeighbours graph nodeKey = 
+getAllowedTimeNeighbours graph nodeKey =
   S.fromList $ IM.keys $ IM.filter (<= maxTime) $ edges $ (graph ! nodeKey)
 
 foundGoal :: Key -> Key -> Bool
@@ -44,10 +44,10 @@ foundGoal goal node = (goal == node)
 
 -- In case you needed, change [] case for debugging
 addNodeToGraph :: Graph -> Key -> Distance -> Distance -> Graph
-addNodeToGraph graph id long lat =
-  case IM.lookup id graph of
+addNodeToGraph graph key long lat =
+  case IM.lookup key graph of
     Nothing -> graph -- error "Node with given id already exist"
-    (Just _) -> IM.insert id (Node IM.empty long lat) graph
+    (Just _) -> IM.insert key (Node IM.empty long lat) graph
 
 
 -- In case you needed, change [] case for debuggin
@@ -78,14 +78,12 @@ parseJSONFromFile file =
 buildGraph :: [StationPaths] -> Graph
 buildGraph = IM.fromList . fmap stationToPair
   where
-    stationToPair (StationPaths (Station number name (Point lat lon)) paths) =
+    stationToPair (StationPaths (Station number _ (Point lat lon)) paths) =
         (number, node)
       where
-        node = Node edges lon lat
-        edges = fmap pathTime paths
+        node = Node edgez lon lat
+        edgez = fmap pathTime paths
 
 readGraphFromFile :: FilePath -> IO (Maybe Graph)
 readGraphFromFile fileName =
   fmap buildGraph <$> parseJSONFromFile fileName
-
-

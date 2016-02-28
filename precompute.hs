@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings, LambdaCase #-}
 module Main where
 
-import Control.Applicative
 import Control.Monad
-import Control.Arrow
 
 import Data.Default
 import Data.String
@@ -19,12 +17,11 @@ import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Vector as V
 import qualified Data.Text as T
-import Data.Text (Text)
 import qualified Data.ByteString.Lazy.Char8 as B8
 
 import Text.XML as XML
 
-import Types
+import Ceburilo.Types
 
 -- Route in GraphHopper response format.
 -- Just a wrapper around Path to provide FromJSON instance.
@@ -60,6 +57,7 @@ getRoute start end manager = do
     return $ fmap (filterPath . routePath) $ Aeson.eitherDecode body
 
 -- Maximum allowed time (20 minutes), in milliseconds.
+maxTime :: Float
 maxTime = 20 * 60 * 1000
 
 -- Get rid of path's points if it's above maximium allowed time.
@@ -79,11 +77,13 @@ getStations = mapMaybe getStation . elementNodes . documentRoot
 
     getStation _ = Nothing
 
+readMay :: Read a => String -> Maybe a
 readMay s = case reads s of
     [(x, "")] -> Just x
     _ -> Nothing
 
 -- Split the list into chunks and apply given action in parallel for each chunk.
+concurrently :: (a -> IO b) -> [a] -> IO [b]
 concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 8
 
 getStationRoutes :: [Station] -> Station -> Manager -> IO (IM.IntMap Path)
@@ -107,6 +107,7 @@ processStations stations manager = mapM getStationPaths' stations
   where
     getStationPaths' station = StationPaths station <$> getStationRoutes stations station manager
 
+main :: IO ()
 main = withManager defaultManagerSettings $ \manager -> do
     stations <- getStations <$> XML.readFile def "nextbike-live.xml"
     processStations stations manager >>= B8.putStr . Aeson.encode

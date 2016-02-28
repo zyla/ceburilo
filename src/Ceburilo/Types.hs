@@ -1,6 +1,6 @@
 -- | Common type definitions for routes.
-{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings, TemplateHaskell #-}
-module Types where
+{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings #-}
+module Ceburilo.Types where
 
 import Control.Applicative
 import Data.Monoid
@@ -8,9 +8,6 @@ import Data.Aeson
 import Data.Maybe
 import qualified Data.Vector as V
 import qualified Data.IntMap as IM
-
-import Data.Aeson.TH
-import Data.Text
 
 data Point = Point
     { pointLatitude :: !Float
@@ -32,7 +29,7 @@ distanceSq :: Point -> Point -> Float
 distanceSq (Point x1 y1) (Point x2 y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
 
 hsin :: Float -> Float
-hsin t = ( sin (t/2))^2
+hsin t = sin (t/2) ^ 2
 
 distanceRad :: Float -> Point -> Point -> Float
 distanceRad r (Point lat1 lon1) (Point lat2 lon2) =
@@ -118,7 +115,10 @@ instance ToJSON StationPaths where
 
 data StationPath = StationPath StationNumber Path
 
+spToPair :: StationPath -> (StationNumber, Path)
 spToPair (StationPath number path) = (number, path)
+
+pairToStationPath :: (StationNumber, Path) -> StationPath
 pairToStationPath (number, path) = StationPath number path
 
 instance ToJSON StationPath where

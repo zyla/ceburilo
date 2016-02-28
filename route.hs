@@ -1,23 +1,25 @@
 module Main where
 
-import Control.Applicative
 import Data.Maybe
 
 import qualified Data.Map as M
 import System.Environment
 
-import Graph
-import Types
+import Ceburilo.Graph
+import Ceburilo.Types
 
 
+stationsToMap :: [Station] -> M.Map StationNumber Station
 stationsToMap = M.fromList . map stationToPair
   where
-    stationToPair station@(Station number name _) = (number, station)
+    stationToPair station@(Station number _ _) = (number, station)
 
+showStation :: Station -> String
 showStation (Station number name _) = show number ++ " " ++ name
 
+main :: IO ()
 main = do
-    [start, end] <- fmap read <$> getArgs 
+    [start, end] <- fmap read <$> getArgs
     Just paths <- parseJSONFromFile "paths.json"
     let graph = buildGraph paths
         stations = stationsToMap . map spStation $ paths
