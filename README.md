@@ -14,14 +14,10 @@ Parametry:
 - `beg_lng` - wymagany
 - `dest_lat` - wymagany
 - `dest_lng` - wymagany
-- `beginning` - nazwa lokacji początkowej (zwracana bez zmian w odpowiedzi)
-- `destination` - nazwa lokacji końcowej (zwracana bez zmian w odpowiedzi)
 
 Odpowiedź:
 
     {
-        "beginning": STRING // nazwa lokacji podana w argumencie
-        "destination": STRING, // nazwa lokacji podana w argumencie
         "beg_coord": [FLOAT, FLOAT],
         "dest_coord": [FLOAT, FLOAT],
         "path":
@@ -48,7 +44,6 @@ Przykładowe zapytanie:
 Przykładowa odpowiedź:
 
     {
-        "destination": "asd",
         "dest_coord": [FLOAT, FLOAT],
         "path":
             {
@@ -66,7 +61,6 @@ Przykładowa odpowiedź:
                 "time": 234000,
                 "distance": 30,
             },
-        "beginning": "dsa",
         "beg_coord": [FLOAT, FLOAT],
         "stations":
             [
