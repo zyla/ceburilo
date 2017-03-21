@@ -6,8 +6,11 @@ import Control.Applicative
 import Data.Monoid
 import Data.Aeson
 import Data.Maybe
-import qualified Data.Vector as V
-import qualified Data.IntMap as IM
+import Foreign.Ptr (castPtr, plusPtr)
+import Foreign.Storable
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Generic as V
+import qualified Data.IntMap.Strict as IM
 import GHC.Generics
 import Control.DeepSeq
 
@@ -15,6 +18,21 @@ data Point = Point
     { pointLatitude :: !Float
     , pointLongitude :: !Float
     } deriving (Generic, NFData)
+
+instance Storable Point where
+    sizeOf _ = sizeOfFloat * 2
+    alignment _ = alignment (undefined :: Float)
+
+    peek ptr = do
+        lat <- peek (castPtr ptr)
+        lon <- peek (castPtr ptr `plusPtr` sizeOfFloat)
+        return (Point lat lon)
+
+    poke ptr (Point lat lon) = do
+      poke (castPtr ptr) lat
+      poke (castPtr ptr `plusPtr` sizeOfFloat) lon
+
+sizeOfFloat = sizeOf (undefined :: Float)
 
 instance Show Point where
     show (Point lat lon) = show (lat, lon)
@@ -52,7 +70,7 @@ distanceEarth a b = distanceRad earthRadius (convToDeg a) (convToDeg b)
 data Path = Path
     { pathDistance :: Float
     , pathTime :: Float
-    , pathPoints :: Maybe (V.Vector Point)
+    , pathPoints :: Maybe (VS.Vector Point)
     } deriving (Show, Generic, NFData)
 
 instance FromJSON Path where
