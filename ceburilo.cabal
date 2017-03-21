@@ -32,6 +32,7 @@ executable ceburilo
                       , containers
                       , transformers
                       , wai-cors
+                      , deepseq
 
 library
     hs-source-dirs:     src
@@ -45,6 +46,7 @@ library
                       , bytestring
                       , vector
                       , text
+                      , deepseq
     ghc-options:        -Wall -O2
 
 executable precompute

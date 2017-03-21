@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 module Ceburilo.Graph where
 
 import Data.HashSet as S
@@ -6,6 +7,8 @@ import Data.Graph.AStar as AS
 import qualified Data.ByteString.Lazy as BS
 import Data.Aeson
 import Ceburilo.Types
+import GHC.Generics
+import Control.DeepSeq
 
 type Distance = Float
 type Graph = IM.IntMap Node
@@ -14,7 +17,7 @@ type Graph = IM.IntMap Node
 data Node = Node { edges :: IM.IntMap Distance,
                    longitude :: Distance,
                    latitude :: Distance
-                 }
+                 } deriving (Generic, NFData)
 
 -- How much time it takes to change bike (2 minutes)
 -- in milliseconds

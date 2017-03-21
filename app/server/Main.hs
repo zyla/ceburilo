@@ -13,6 +13,8 @@ import Data.Foldable (minimumBy)
 import qualified Data.IntMap as IM
 import Data.Aeson (ToJSON, toJSON, (.=), object)
 import System.Environment (lookupEnv)
+import Control.Exception (evaluate)
+import Control.DeepSeq (force)
 -------------------------------
 import Ceburilo.Types
 import Ceburilo.Graph
@@ -93,7 +95,9 @@ main = do
     port <- maybe 4000 read <$> lookupEnv "PORT"
     paths <- fromMaybe (error "error loading graph") <$>
         parseJSONFromFile "paths.json"
-    run port $ simpleCors $ (app (buildGraph paths) (stationsToMap paths))
+    graph <- evaluate $ force $ buildGraph paths
+    map <- evaluate $ force $ stationsToMap paths
+    run port $ simpleCors $ app graph map
 
 stationsToMap :: [StationPaths] -> IMap
 stationsToMap = IM.fromList . map sspToPair

@@ -1,5 +1,5 @@
 -- | Common type definitions for routes.
-{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings, DeriveGeneric, DeriveAnyClass #-}
 module Ceburilo.Types where
 
 import Control.Applicative
@@ -8,11 +8,13 @@ import Data.Aeson
 import Data.Maybe
 import qualified Data.Vector as V
 import qualified Data.IntMap as IM
+import GHC.Generics
+import Control.DeepSeq
 
 data Point = Point
     { pointLatitude :: !Float
     , pointLongitude :: !Float
-    }
+    } deriving (Generic, NFData)
 
 instance Show Point where
     show (Point lat lon) = show (lat, lon)
@@ -51,7 +53,7 @@ data Path = Path
     { pathDistance :: Float
     , pathTime :: Float
     , pathPoints :: Maybe (V.Vector Point)
-    } deriving (Show)
+    } deriving (Show, Generic, NFData)
 
 instance FromJSON Path where
     parseJSON = withObject "Path" $ \obj ->
@@ -81,7 +83,7 @@ data Station = Station
     { stationNumber :: StationNumber
     , stationName :: String
     , stationLocation :: Point
-    } deriving (Show)
+    } deriving (Show, Generic, NFData)
 
 instance Eq Station where
     (Station n1 _ _) == (Station n2 _ _) = n1 == n2
@@ -98,7 +100,7 @@ data StationPaths = StationPaths
     { spStation :: Station
     , spPaths :: IM.IntMap Path
     -- ^ Paths to other stations
-    }
+    } deriving (Generic, NFData)
 
 instance FromJSON StationPaths where
     parseJSON = withObject "StationPaths" $ \obj ->
