@@ -41,6 +41,7 @@ library
                       , astar
                       , aeson
                       , containers
+                      , unordered-containers
                       , bytestring
                       , vector
                       , text

@@ -1,7 +1,7 @@
 {-# LANGUAGE DataKinds, TypeOperators, RecordWildCards, OverloadedStrings #-}
 module Main where
 
-import Control.Monad.Trans.Either
+import Control.Monad.Trans.Except
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Cors (simpleCors)
@@ -73,14 +73,14 @@ parseInput :: Graph -> IMap
            -> Maybe Float -> Maybe Float
            -> Maybe Float -> Maybe Float
            -> Maybe Text -> Maybe Text
-           -> EitherT ServantErr IO RouteView
+           -> ExceptT ServantErr IO RouteView
 parseInput g mp (Just blat) (Just blon) (Just dlat) (Just dlon) beg dest  =
   case generateRouteView (Point blat blon) (Point dlat dlon) (fromTxt beg) (fromTxt dest) g mp of
-    Nothing -> left err500
+    Nothing -> throwE err500
     (Just x) -> return x
   where
     fromTxt = fromMaybe ""
-parseInput _ _ _ _ _ _ _ _ = left err400
+parseInput _ _ _ _ _ _ _ _ = throwE err400
 
 
 

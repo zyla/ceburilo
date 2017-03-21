@@ -1,6 +1,6 @@
 module Ceburilo.Graph where
 
-import Data.Set as S
+import Data.HashSet as S
 import Data.IntMap as IM
 import Data.Graph.AStar as AS
 import qualified Data.ByteString.Lazy as BS
@@ -26,7 +26,7 @@ getDistance graph start goal = if start == goal then 0 else
 -- very unsafe, but a* has proper assumption
   (edges (graph ! start)) ! goal + bikeChangeTime
 
-getNeighbours :: Graph -> Key -> Set Key
+getNeighbours :: Graph -> Key -> HashSet Key
 getNeighbours graph nodeKey =
 -- nodeKey will exist in DB!
   S.fromList $ IM.keys $ edges $ (graph ! nodeKey)
@@ -35,7 +35,7 @@ getNeighbours graph nodeKey =
 maxTime :: Distance
 maxTime = 20 * 60 * 1000
 
-getAllowedTimeNeighbours :: Graph -> Key -> Set Key
+getAllowedTimeNeighbours :: Graph -> Key -> HashSet Key
 getAllowedTimeNeighbours graph nodeKey =
   S.fromList $ IM.keys $ IM.filter (<= maxTime) $ edges $ (graph ! nodeKey)
 
