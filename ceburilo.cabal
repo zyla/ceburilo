@@ -19,6 +19,7 @@ library
   hs-source-dirs:     src
   exposed-modules:    Ceburilo.Types
                       Ceburilo.Graph
+                      Ceburilo.Geo
   build-depends:      base >= 4.8
                     , astar
                     , aeson
