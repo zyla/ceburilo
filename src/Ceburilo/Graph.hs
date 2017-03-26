@@ -6,7 +6,7 @@ import Data.IntMap as IM
 import Data.Graph.AStar as AS
 import qualified Data.ByteString.Lazy as BS
 import Data.Aeson
-import Ceburilo.Types
+import Ceburilo.Types.Packed
 import GHC.Generics
 import Control.DeepSeq
 
@@ -81,12 +81,9 @@ parseJSONFromFile file =
 buildGraph :: [StationPaths] -> Graph
 buildGraph = IM.fromList . fmap stationToPair
   where
-    stationToPair (StationPaths (Station number _ (Point lat lon)) paths) =
-        (number, node)
-      where
-        node = Node edgez lon lat
-        edgez = fmap pathTime paths
-
-readGraphFromFile :: FilePath -> IO (Maybe Graph)
-readGraphFromFile fileName =
-  fmap buildGraph <$> parseJSONFromFile fileName
+    stationToPair sp
+     | station <- spStation sp
+     , Point lat lon <- stationLocation station
+     , edgez <- fmap pathTime (spPaths sp)
+     , node <- Node edgez lon lat
+        = (stationNumber station, node)

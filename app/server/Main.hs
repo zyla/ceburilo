@@ -5,6 +5,7 @@ import Control.Monad.Trans.Except
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Cors (simpleCors)
+import qualified Data.ByteString as B
 import Servant
 import Data.Text hiding (zip, map)
 import Data.Maybe
@@ -16,7 +17,7 @@ import System.Environment (lookupEnv)
 import Control.Exception (evaluate)
 import Control.DeepSeq (force)
 -------------------------------
-import Ceburilo.Types
+import Ceburilo.Types.Packed
 import Ceburilo.Graph
 
 type IMap = IM.IntMap StationPaths
@@ -93,13 +94,15 @@ app gr mp = serve proxyAPI (parseInput gr mp)
 main :: IO ()
 main = do
     port <- maybe 4000 read <$> lookupEnv "PORT"
-    paths <- fromMaybe (error "error loading graph") <$>
-        parseJSONFromFile "paths.json"
-    graph <- evaluate $ force $ buildGraph paths
-    map <- evaluate $ force $ stationsToMap paths
+    paths <- unpackStationPathsVector <$> B.readFile "paths.dat"
+
+    let graph = buildGraph paths
+        map = stationsToMap paths
+
     run port $ simpleCors $ app graph map
 
 stationsToMap :: [StationPaths] -> IMap
 stationsToMap = IM.fromList . map sspToPair
   where
-    sspToPair sp@(StationPaths (Station number _ _) _) = (number, sp)
+    sspToPair sp | number <- stationNumber $ spStation sp
+      = (number, sp)

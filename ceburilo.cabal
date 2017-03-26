@@ -33,11 +33,17 @@ executable ceburilo
                       , transformers
                       , wai-cors
                       , deepseq
+                      , bytestring
 
 library
     hs-source-dirs:     src
     exposed-modules:    Ceburilo.Types
                         Ceburilo.Graph
+
+                        Ceburilo.Types.Packed
+                        Ceburilo.Packed
+                        Ceburilo.Geo
+
     build-depends:      base >= 4.8
                       , astar
                       , aeson
@@ -47,6 +53,7 @@ library
                       , vector
                       , text
                       , deepseq
+                      , packer
     ghc-options:        -Wall -O2
 
 executable precompute

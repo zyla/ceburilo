@@ -1,7 +1,9 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedLists #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedLists, RecordWildCards #-}
 module Main where
 
 import Data.ByteString (ByteString)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.ByteString as B
 import Data.Word
 import qualified Data.IntMap as IM
@@ -15,8 +17,23 @@ type Ptr = Word32
 
 type TwoStagePacking = Packing (Packing ())
 
-putPath :: Path -> Packing (Packing ())
-putPath (Path distance time m_points) = do
+putStationPaths :: StationPaths -> TwoStagePacking
+putStationPaths (StationPaths (Station number name location) paths) = do
+  putWord32LE $ fromIntegral number
+  hole_name <- putPtrHole
+  putPoint location
+  hole_paths <- putPtrHole
+
+  return $ do
+    fillPtrHole hole_name
+    putVectorWith putWord8 $ B.unpack $ T.encodeUtf8 $ T.pack name
+    fillPtrHole hole_paths
+    putVectorTwoStageWith putPath $ IM.toList paths
+
+putPath :: (StationNumber, Path) -> TwoStagePacking
+putPath (number, Path distance time m_points) = do
+  putWord32LE $ fromIntegral number
+
   let points = maybe [] id m_points 
 
   putFloat32LE distance
@@ -52,60 +69,12 @@ putPoint (Point lat lon) = do
   putFloat32LE lon
 
 maxSize :: Int
-maxSize = 30 * 1024 * 1024
-
-data Packed a = Packed { packed_storage :: !ByteString, packed_location :: !Int }
-
-readPacked :: Unpacking a -> Int -> Packed b -> a
-readPacked unpack offset (Packed bs location) =
-  runUnpacking
-    (do unpackSetPosition (offset + location); unpack)
-    bs
-
-pp_distance :: Packed Path -> Float
-pp_distance = readPacked getFloat32LE 0
-
-pp_time :: Packed Path -> Float
-pp_time = readPacked getFloat32LE 4
-
-pp_points :: Packed Path -> Packed [Point]
-pp_points = readPackedPtr 8
-
-point_latitude :: Packed Point -> Float
-point_latitude = readPacked getFloat32LE 0
-
-point_longitude :: Packed Point -> Float
-point_longitude = readPacked getFloat32LE 4
-
-readPackedPtr :: Int -> Packed a -> Packed b
-readPackedPtr offset packed@(Packed bs _) =
-  let location = fromIntegral $ readPacked getWord32LE offset packed
-  in Packed bs location
-
-atOffset :: Int -> Packed a -> Packed b
-atOffset off (Packed bs location) = Packed bs (location + off)
-
-readVector :: Int -- ^ size
-  -> Packed [a] -> [Packed a]
-readVector size packed =
-  let len = fromIntegral $ readPacked getWord32LE 0 packed
-      atIndex index = atOffset (index * size + 4) packed
-  in map atIndex [0..len-1]
+maxSize = 50 * 1024 * 1024
 
 main :: IO ()
 main = do
-{-
     Just (paths :: [StationPaths]) <- parseJSONFromFile "paths.json"
 
-    let bs = runPacking maxSize $
-          putVectorTwoStageWith putPath $ concatMap (map snd . IM.toList . spPaths) paths
--}
+    let bs = runPacking maxSize $ putVectorTwoStageWith putStationPaths paths
 
-    bs <- B.readFile "paths.dat"
-
-    let packed :: Packed [Path]
-        packed = Packed bs 0
-
-        vec = take 10 $ readVector 12 packed
-
-    mapM_ print $ map point_latitude $ readVector 8 $ pp_points $ head vec
+    B.writeFile "paths.dat" bs
