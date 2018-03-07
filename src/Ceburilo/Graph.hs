@@ -14,10 +14,9 @@ type Distance = Float
 type Graph = IM.IntMap Node
 --data Key = Int
 
-data Node = Node { edges :: IM.IntMap Distance,
-                   longitude :: Distance,
-                   latitude :: Distance
-                 } deriving (Generic, NFData)
+type StationNumber = Int
+
+data Node = Node { edges :: IM.IntMap Distance } deriving (Generic, NFData)
 
 -- How much time it takes to change bike (2 minutes)
 -- in milliseconds
@@ -45,26 +44,6 @@ getAllowedTimeNeighbours graph nodeKey =
 foundGoal :: Key -> Key -> Bool
 foundGoal goal node = (goal == node)
 
--- In case you needed, change [] case for debugging
-addNodeToGraph :: Graph -> Key -> Distance -> Distance -> Graph
-addNodeToGraph graph key long lat =
-  case IM.lookup key graph of
-    Nothing -> graph -- error "Node with given id already exist"
-    (Just _) -> IM.insert key (Node IM.empty long lat) graph
-
-
--- In case you needed, change [] case for debuggin
-addEdgeToGraph :: Graph -> Key -> Key -> Distance -> Graph
-addEdgeToGraph graph start goal dist =
-  case mNode of
-    Nothing -> graph -- error "Path leads to not existing node"
-    (Just node) -> IM.insert start (Node (IM.insert goal dist (edges node))
-                                      (longitude node)
-                                      (latitude node) ) graph
-    where
-      mNode = IM.lookup start graph
-
-
 generateRoute :: Graph -> Key -> Key -> Maybe [Key]
 generateRoute graph start goal =
   AS.aStar (getAllowedTimeNeighbours graph)
@@ -83,7 +62,5 @@ buildGraph = IM.fromList . fmap stationToPair
   where
     stationToPair sp
      | station <- spStation sp
-     , Point lat lon <- stationLocation station
      , edgez <- fmap pathTime (spPaths sp)
-     , node <- Node edgez lon lat
-        = (stationNumber station, node)
+        = (stationNumber station, Node edgez)
