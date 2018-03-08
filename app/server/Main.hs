@@ -81,10 +81,12 @@ app gr mp = serve proxyAPI (parseInput gr mp)
 main :: IO ()
 main = do
     port <- maybe 4000 read <$> lookupEnv "PORT"
-    paths <- fromMaybe (error "error loading graph") <$>
-        parseJSONFromFile "paths.json"
+    putStrLn $ "Parsing data file..."
+    paths <- parseJSONFromFile "paths.json" >>= maybe (error "error loading graph") pure
+    putStrLn $ "Building graph..."
     graph <- evaluate $ force $ buildGraph paths
     map <- evaluate $ force $ stationsToMap paths
+    putStrLn $ "Running server on port " ++ show port
     run port $ simpleCors $ app graph map
 
 stationsToMap :: [StationPaths] -> IMap
