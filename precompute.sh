@@ -13,6 +13,9 @@ then
 fi
 
 stack build
+
+cp graphhopper-config.properties graphhopper/config.properties
+
 cd graphhopper
 ./graphhopper.sh build
 
