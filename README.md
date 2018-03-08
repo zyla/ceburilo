@@ -1,4 +1,4 @@
-Ceburilo API
+Ceburilo API ![](https://travis-ci.org/zyla/ceburilo.svg?branch=master)
 ========
 
 Wyszukanie trasy
