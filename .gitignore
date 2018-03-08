@@ -17,3 +17,6 @@ cabal.sandbox.config
 .DS_Store
 *.swp
 paths.json
+
+Warsaw.osm-gh/
+Warsaw.osm.pbf
