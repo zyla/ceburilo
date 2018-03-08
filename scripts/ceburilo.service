@@ -1,0 +1,10 @@
+[Unit]
+Description=Ceburilo Backend
+
+[Service]
+ExecStart=/home/cebu/backend/ceburilo
+WorkingDirectory=/home/cebu/backend
+User=cebu
+
+[Install]
+WantedBy=multi-user.target

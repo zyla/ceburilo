@@ -18,3 +18,6 @@ cabal.sandbox.config
 *.swp
 paths.json
 paths.dat
+
+Warsaw.osm-gh/
+Warsaw.osm.pbf

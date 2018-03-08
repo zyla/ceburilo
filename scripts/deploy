@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd $(dirname $0)/..
+
+stack build
+
+TARGET_MACHINE=cebu@api.ceburilo.pl
+TARGET_DIR=/home/cebu/backend
+
+NAME=ceburilo
+EXE=$(stack exec -- which $NAME)
+
+strip $EXE
+
+rsync -avz --progress $EXE $TARGET_MACHINE:$TARGET_DIR/${NAME}.new
+ssh $TARGET_MACHINE mv $TARGET_DIR/${NAME}.new $TARGET_DIR/$NAME
+
+ssh $TARGET_MACHINE sudo systemctl restart $NAME

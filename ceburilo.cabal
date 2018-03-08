@@ -48,12 +48,12 @@ library
                       , astar
                       , aeson
                       , containers
-                      , unordered-containers
                       , bytestring
                       , vector
                       , text
                       , deepseq
                       , packer
+                      , unordered-containers
     ghc-options:        -Wall -O2
 
 executable precompute
@@ -73,7 +73,7 @@ executable precompute
                      , async
                      , text
   default-language:    Haskell2010
-  ghc-options:        -Wall -O2
+  ghc-options:        -Wall -O2 -threaded
 
 executable route
     main-is:            route.hs

@@ -10,7 +10,9 @@ import Data.Maybe
 import Data.List.Split (chunksOf)
 import Control.Concurrent.Async (mapConcurrently)
 
-import Network.HTTP.Client
+import Network.HTTP.Client (Manager, parseUrlThrow, withManager,
+                            defaultManagerSettings, setQueryString,
+                            responseBody, httpLbs)
 import Data.Aeson as Aeson
 
 import qualified Data.IntMap as IM
@@ -44,7 +46,7 @@ getRoute :: Point -- ^ starting point
          -> Manager
          -> IO (Either String Path)
 getRoute start end manager = do
-    initReq <- parseUrl "http://localhost:8989/route"
+    initReq <- parseUrlThrow "http://localhost:8989/route"
     let req = flip setQueryString initReq
             [ ("point", Just $ formatPoint start)
             , ("point", Just $ formatPoint end)
@@ -103,7 +105,8 @@ getStationRoutes stations beginStation manager =
 
 
 processStations :: [Station] -> Manager -> IO [StationPaths]
-processStations stations manager = mapM getStationPaths' stations
+processStations stations manager = concurrently getStationPaths' stations
+  -- mapM getStationPaths' stations
   where
     getStationPaths' station = StationPaths station <$> getStationRoutes stations station manager
 
