@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd $(dirname $0)/..
+
+stack build
+
+TARGET_MACHINE=cebu@api.ceburilo.pl
+TARGET_DIR=/home/cebu/backend
+
+NAME=ceburilo
+EXE=$(stack exec -- which $NAME)
+
+strip $EXE
+
+scp $EXE $TARGET_MACHINE:$TARGET_DIR/$NAME
+
+sudo systemctl restart $NAME
