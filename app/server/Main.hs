@@ -1,7 +1,6 @@
 {-# LANGUAGE DataKinds, TypeOperators, RecordWildCards, OverloadedStrings #-}
 module Main where
 
-import Control.Monad.Trans.Except
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Cors (simpleCors)
@@ -65,12 +64,12 @@ generateRouteView begPoint dstPoint graph spath =
 parseInput :: Graph -> IMap
            -> Maybe Float -> Maybe Float
            -> Maybe Float -> Maybe Float
-           -> ExceptT ServantErr IO RouteView
+           -> Handler RouteView
 parseInput g mp (Just blat) (Just blon) (Just dlat) (Just dlon) =
   case generateRouteView (Point blat blon) (Point dlat dlon) g mp of
-    Nothing -> throwE err500
+    Nothing -> throwError err500
     (Just x) -> return x
-parseInput _ _ _ _ _ _ = throwE err400
+parseInput _ _ _ _ _ _ = throwError err400
 
 
 
