@@ -14,6 +14,7 @@ EXE=$(stack exec -- which $NAME)
 
 strip $EXE
 
-scp $EXE $TARGET_MACHINE:$TARGET_DIR/$NAME
+rsync -avz --progress $EXE $TARGET_MACHINE:$TARGET_DIR/${NAME}.new
+ssh $TARGET_MACHINE mv $TARGET_DIR/${NAME}.new $TARGET_DIR/$NAME
 
-sudo systemctl restart $NAME
+ssh $TARGET_MACHINE sudo systemctl restart $NAME
