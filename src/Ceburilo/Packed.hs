@@ -31,11 +31,11 @@ readMaybePtr offset packed@(Packed bs _) =
 atOffset :: Int -> Packed -> Packed
 atOffset off (Packed bs location) = Packed bs (location + off)
 
-readVector ::
-  Int -> -- ^ size
-  (Packed -> a) ->
-  Packed ->
-  [a]
+readVector
+  :: Int -- ^ size
+  -> (Packed -> a)
+  -> Packed
+  -> [a]
 --readVector size decode packed | trace ("readVector " ++ show size ++ " " ++ show (packed_location packed)) False = undefined
 readVector size decode packed =
   let len = fromIntegral $ readPacked getWord32LE 0 packed
