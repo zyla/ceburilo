@@ -15,44 +15,47 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
-executable ceburilo
-    hs-source-dirs:     app
-    main-is:            server/Main.hs
-    ghc-options:        -Wall -O2
-    default-language:   Haskell2010
-    build-depends:      base >= 4.8
-                      , servant
-                      , servant-server
-                      , either
-                      , wai
-                      , warp
-                      , ceburilo
-                      , text
-                      , aeson
-                      , containers
-                      , transformers
-                      , wai-cors
-                      , deepseq
-
 library
-    hs-source-dirs:     src
-    exposed-modules:    Ceburilo.Types
-                        Ceburilo.Graph
-    build-depends:      base >= 4.8
-                      , astar
-                      , aeson
-                      , containers
-                      , unordered-containers
-                      , bytestring
-                      , vector
-                      , text
-                      , deepseq
-                      , unordered-containers
-    ghc-options:        -Wall -O2
+  hs-source-dirs:     src
+  exposed-modules:    Ceburilo.Types
+                      Ceburilo.Graph
+  build-depends:      base >= 4.8
+                    , astar
+                    , aeson
+                    , containers
+                    , unordered-containers
+                    , bytestring
+                    , vector
+                    , text
+                    , deepseq
+                    , unordered-containers
+  ghc-options:        -Wall -O2
+
+
+executable ceburilo
+  hs-source-dirs:     app
+  main-is:            server/Main.hs
+  build-depends:      base >= 4.8
+                    , servant
+                    , servant-server
+                    , either
+                    , wai
+                    , warp
+                    , ceburilo
+                    , text
+                    , aeson
+                    , containers
+                    , transformers
+                    , wai-cors
+                    , deepseq
+  default-language:   Haskell2010
+  ghc-options:        -Wall -O2
+
 
 executable precompute
-  main-is:             precompute.hs
-  build-depends:       base >=4.7
+  hs-source-dirs:      app
+  main-is:             precompute/Main.hs
+  build-depends:       base >= 4.8
                      , ceburilo
                      , http-types
                      , http-client
@@ -67,22 +70,4 @@ executable precompute
                      , async
                      , text
   default-language:    Haskell2010
-  ghc-options:        -Wall -O2 -threaded
-
-executable route
-    main-is:            route.hs
-
-    ghc-options:        -Wall -fwarn-tabs -O2
-
-    build-depends:      base >=4.7
-                        , ceburilo
-                        , astar
-                        , aeson
-                        , vector
-                        , containers
-                        , text
-                        , bytestring
-
-    ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
-    -- hs-source-dirs:
-    default-language:    Haskell2010
+  ghc-options:         -Wall -O2 -threaded
