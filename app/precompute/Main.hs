@@ -1,16 +1,16 @@
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, Rank2Types #-}
 module Main where
 
 import Control.Monad
+import Control.Monad.IO.Class (liftIO)
 
 import Data.Default
 import Data.String
 import Data.Maybe
 
-import Data.List.Split (chunksOf)
 import Control.Concurrent.Async (mapConcurrently)
 
-import Network.HTTP.Client (Manager, parseUrlThrow, withManager,
+import Network.HTTP.Client (Manager, parseUrlThrow, newManager,
                             defaultManagerSettings, setQueryString,
                             responseBody, httpLbs)
 import Data.Aeson as Aeson
@@ -22,6 +22,9 @@ import qualified Data.Text as T
 import qualified Data.ByteString.Lazy.Char8 as B8
 
 import Text.XML as XML
+
+import Data.Conduit.Async
+import qualified Data.Conduit.List as CL
 
 import Ceburilo.Types
 
@@ -84,9 +87,6 @@ readMay s = case reads s of
     [(x, "")] -> Just x
     _ -> Nothing
 
--- Split the list into chunks and apply given action in parallel for each chunk.
-concurrently :: (a -> IO b) -> [a] -> IO [b]
-concurrently action = fmap concat . mapM (mapConcurrently action) . chunksOf 8
 
 getStationRoutes :: [Station] -> Station -> Manager -> IO (IM.IntMap Path)
 getStationRoutes stations beginStation manager =
@@ -104,13 +104,17 @@ getStationRoutes stations beginStation manager =
             Left _ -> return Nothing
 
 
-processStations :: [Station] -> Manager -> IO [StationPaths]
-processStations stations manager = concurrently getStationPaths' stations
-  -- mapM getStationPaths' stations
-  where
-    getStationPaths' station = StationPaths station <$> getStationRoutes stations station manager
+getStationPaths :: Manager -> [Station] -> Station -> IO StationPaths
+getStationPaths manager stations station =
+  StationPaths station <$> getStationRoutes stations station manager
 
+
+-- | Outputs in 'JSON object per line' format
 main :: IO ()
-main = withManager defaultManagerSettings $ \manager -> do
-    stations <- getStations <$> XML.readFile def "nextbike-live.xml"
-    processStations stations manager >>= B8.putStr . Aeson.encode
+main = do
+  manager <- newManager defaultManagerSettings -- will be closed automatically
+  stations <- getStations <$> XML.readFile def "nextbike-live.xml"
+  runCConduit $ CL.sourceList stations
+           =$=& CL.chunksOf 8
+           =$=& CL.concatMapM (liftIO . mapConcurrently (getStationPaths manager stations))
+           =$=& CL.mapM_ (B8.putStrLn . Aeson.encode)
