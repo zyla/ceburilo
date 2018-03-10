@@ -11,6 +11,8 @@ import Data.Foldable (minimumBy)
 import qualified Data.IntMap as IM
 import Data.Aeson (ToJSON, toJSON, (.=), object)
 import System.Environment (lookupEnv)
+import System.Random
+import Control.Monad.IO.Class (liftIO)
 import Control.Exception (evaluate)
 import Control.DeepSeq (force)
 -------------------------------
@@ -40,11 +42,11 @@ type API = "route" :> QueryParam "beg_lat" Float :> QueryParam "beg_lon" Float
 proxyAPI :: Proxy API
 proxyAPI = Proxy
 
-generateRouteView :: Point -- ^Begginning lat,lon
+generateRouteView :: StdGen -> Point -- ^Begginning lat,lon
               -> Point -- ^Destination lat.lon
               -> Graph -> IMap -- ^Given graph
               -> Maybe RouteView
-generateRouteView begPoint dstPoint graph spath =
+generateRouteView gen begPoint dstPoint graph spath =
   let lookupStation = fmap spStation . flip IM.lookup spath
       lookupPath from to = IM.lookup from spath >>= IM.lookup to . spPaths
       allStations = fmap spStation $ IM.elems spath
@@ -54,7 +56,7 @@ generateRouteView begPoint dstPoint graph spath =
 
       beginStation = nearestStation begPoint
       destStation = nearestStation dstPoint
-  in (flip fmap) (generateRoute graph beginStation destStation) (\stationNumbers ->
+   in (flip fmap) (generateHeuristicRoute gen graph beginStation destStation) (\stationNumbers ->
 
     let stations = mapMaybe lookupStation (beginStation:stationNumbers)
         stationPairs = zip (beginStation:stationNumbers) stationNumbers
@@ -67,8 +69,9 @@ parseInput :: Graph -> IMap
            -> Maybe Float -> Maybe Float
            -> Maybe Float -> Maybe Float
            -> Handler RouteView
-parseInput g mp (Just blat) (Just blon) (Just dlat) (Just dlon) =
-  case generateRouteView (Point blat blon) (Point dlat dlon) g mp of
+parseInput g mp (Just blat) (Just blon) (Just dlat) (Just dlon) = do
+  gen <- liftIO newStdGen
+  case generateRouteView gen (Point blat blon) (Point dlat dlon) g mp of
     Nothing -> throwError err500
     (Just x) -> return x
 parseInput _ _ _ _ _ _ = throwError err400
