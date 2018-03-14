@@ -82,10 +82,10 @@ main :: IO ()
 main = do
     port <- maybe 4000 read <$> lookupEnv "PORT"
     putStrLn $ "Parsing data file..."
-    paths <- parseJSONFromFile "paths.json" >>= maybe (error "error loading graph") pure
+    paths <- parseJSONFromFile "paths.json"
     putStrLn $ "Building graph..."
-    graph <- evaluate $ force $ buildGraph paths
-    map <- evaluate $ force $ stationsToMap paths
+    graph <- evaluate $ force $ fromMaybe (error "error loading graph") $ buildGraph paths
+    map <- evaluate $ force $ stationsToMap $ fromMaybe (error "error loading graph") $ sequence paths
     putStrLn $ "Running server on port " ++ show port
     run port $ simpleCors $ app graph map
 
