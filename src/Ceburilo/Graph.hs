@@ -73,10 +73,11 @@ generateRoute graph start goal =
            (foundGoal goal)
            start
 
-parseJSONFromFile :: FromJSON a => FilePath -> IO (Maybe a)
+parseJSONFromFile :: FromJSON a => FilePath -> IO (Maybe [a])
 parseJSONFromFile file =
-  decode <$> BS.readFile file
+  traverse decode . Prelude.filter (not . BS.null) . BS.split newline <$> BS.readFile file
 
+newline = 10
 
 buildGraph :: [StationPaths] -> Graph
 buildGraph = IM.fromList . fmap stationToPair
