@@ -9,7 +9,7 @@ import Control.Applicative
 import Data.Monoid
 import Data.Aeson
 import Data.Maybe
-import qualified Data.Vector as V
+import qualified Data.Vector.Storable as V
 import qualified Data.IntMap as IM
 import GHC.Generics
 import Control.DeepSeq

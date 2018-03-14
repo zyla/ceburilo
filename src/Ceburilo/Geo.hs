@@ -1,10 +1,17 @@
 {-# LANGUAGE ViewPatterns, LambdaCase, RecordWildCards, OverloadedStrings, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 module Ceburilo.Geo where
 
 import GHC.Generics
 import Control.DeepSeq
 import qualified Data.Vector as V
 import Data.Aeson
+import qualified Foreign.Storable as Storable
+import Foreign.Ptr (Ptr, castPtr, plusPtr)
 
 data Point = Point
     { pointLatitude :: !Float
@@ -21,6 +28,19 @@ instance FromJSON Point where
 
 instance ToJSON Point where
     toJSON (Point lat lon) = toJSON (lat, lon)
+
+instance Storable.Storable Point where
+  sizeOf _ = 2 * sizeOfFloat
+  alignment _ = Storable.alignment (undefined :: Float)
+  peek ptr =
+    let ptrF = castPtr ptr :: Ptr Float
+    in Point <$> Storable.peek ptrF <*> Storable.peek (ptrF `plusPtr` 1)
+  poke ptr (Point x y) = do
+    let ptrF = castPtr ptr :: Ptr Float
+    Storable.poke ptrF x
+    Storable.poke (ptrF `plusPtr` 1) y
+
+sizeOfFloat = Storable.sizeOf (undefined :: Float)
 
 distanceSq :: Point -> Point -> Float
 distanceSq (Point x1 y1) (Point x2 y2) = (x1 - x2) ^ 2 + (y1 - y2) ^ 2
