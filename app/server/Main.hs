@@ -8,8 +8,9 @@ import Servant
 import Data.Maybe
 import Data.Ord
 import Data.Foldable (minimumBy)
-import qualified Data.IntMap as IM
-import Data.Aeson (ToJSON, toJSON, (.=), object)
+import qualified Data.ByteString as BS
+import qualified Data.IntMap.Strict as IM
+import Data.Aeson (FromJSON, ToJSON, toJSON, (.=), object, decodeStrict)
 import System.Environment (lookupEnv)
 import Control.Exception (evaluate)
 import Control.DeepSeq (force)
@@ -20,17 +21,17 @@ import Ceburilo.Graph
 type IMap = IM.IntMap StationPaths
 
 data RouteView = RouteView
-    {   rv_path :: Path
-    ,   rv_stations :: [Station]
-    ,   rv_begCoord :: Point
-    ,   rv_destCoord :: Point
+    { rvPath :: Path
+    , rvStations :: [Station]
+    , rvBegCoord :: Point
+    , rvDestCoord :: Point
     }
 
 instance ToJSON RouteView where
-  toJSON RouteView{..} = object [ "beg_coord" .= rv_begCoord
-                                , "dest_coord" .= rv_destCoord
-                                , "path" .= rv_path
-                                , "stations" .= rv_stations ]
+  toJSON RouteView{..} = object [ "beg_coord" .= rvBegCoord
+                                , "dest_coord" .= rvDestCoord
+                                , "path" .= rvPath
+                                , "stations" .= rvStations ]
 
 
 type API = "route" :> QueryParam "beg_lat" Float :> QueryParam "beg_lon" Float
@@ -47,21 +48,21 @@ generateRouteView :: Point -- ^Begginning lat,lon
 generateRouteView begPoint dstPoint graph spath =
   let lookupStation = fmap spStation . flip IM.lookup spath
       lookupPath from to = IM.lookup from spath >>= IM.lookup to . spPaths
-      allStations = fmap spStation $ IM.elems spath
+      allStations = spStation <$> IM.elems spath
       nearestStation point = stationNumber $
-          minimumBy (comparing $ distanceEarth point . stationLocation) $
+          minimumBy (comparing $ distanceEarth point . stationLocation)
           allStations
 
       beginStation = nearestStation begPoint
       destStation = nearestStation dstPoint
-  in (flip fmap) (generateRoute graph beginStation destStation) (\stationNumbers ->
+  in fmap (\stationNumbers ->
 
     let stations = mapMaybe lookupStation (beginStation:stationNumbers)
         stationPairs = zip (beginStation:stationNumbers) stationNumbers
         path = mconcat $ mapMaybe (uncurry lookupPath) stationPairs
 
     in RouteView path stations begPoint dstPoint
-  )
+  ) (generateRoute graph beginStation destStation)
 
 parseInput :: Graph -> IMap
            -> Maybe Float -> Maybe Float
@@ -78,18 +79,26 @@ app :: Graph -> IMap -> Application
 app gr mp = serve proxyAPI (parseInput gr mp)
 
 
-main :: IO ()
-main = do
-    port <- maybe 4000 read <$> lookupEnv "PORT"
-    putStrLn $ "Parsing data file..."
-    paths <- parseJSONFromFile "paths.json"
-    putStrLn $ "Building graph..."
-    graph <- evaluate $ force $ fromMaybe (error "error loading graph") $ buildGraph paths
-    map <- evaluate $ force $ stationsToMap $ fromMaybe (error "error loading graph") $ sequence paths
-    putStrLn $ "Running server on port " ++ show port
-    run port $ simpleCors $ app graph map
+parseJSONFromFile :: FromJSON a => FilePath -> IO [Maybe a]
+parseJSONFromFile file =
+  fmap decodeStrict . Prelude.filter (not . BS.null) . BS.split newline <$> BS.readFile file
+    where
+      newline = 10
+
 
 stationsToMap :: [StationPaths] -> IMap
 stationsToMap = IM.fromList . map sspToPair
   where
     sspToPair sp@(StationPaths (Station number _ _) _) = (number, sp)
+
+
+main :: IO ()
+main = do
+    port <- maybe 4000 read <$> lookupEnv "PORT"
+    putStrLn "Parsing data file..."
+    paths <- parseJSONFromFile "paths.json"
+    putStrLn "Building graph..."
+    graph <- evaluate $ force $ fromMaybe (error "error loading graph") $ buildGraph paths
+    imap <- evaluate $ force $ stationsToMap $ fromMaybe (error "error loading graph") $ sequence paths
+    putStrLn $ "Running server on port " ++ show port
+    run port $ simpleCors $ app graph imap
