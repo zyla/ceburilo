@@ -2,9 +2,9 @@
 module Ceburilo.Graph where
 
 import Data.HashSet as S
-import Data.IntMap as IM
+import Data.IntMap.Strict as IM
 import Data.Graph.AStar as AS
-import qualified Data.ByteString.Lazy as BS
+import qualified Data.ByteString as BS
 import Data.Aeson
 import Ceburilo.Types
 import GHC.Generics
@@ -75,7 +75,7 @@ generateRoute graph start goal =
 
 parseJSONFromFile :: FromJSON a => FilePath -> IO ([Maybe a])
 parseJSONFromFile file =
-  fmap decode . Prelude.filter (not . BS.null) . BS.split newline <$> BS.readFile file
+  fmap decodeStrict . Prelude.filter (not . BS.null) . BS.split newline <$> BS.readFile file
 
 newline = 10
 
