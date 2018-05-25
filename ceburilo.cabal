@@ -40,6 +40,7 @@ executable ceburilo
   hs-source-dirs:     app
   main-is:            server/Main.hs
   build-depends:      base >= 4.8
+                    , bytestring
                     , servant
                     , servant-server
                     , either
